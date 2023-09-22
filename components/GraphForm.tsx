@@ -31,7 +31,7 @@ import {
 } from "./ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { useState } from "react";
-import { GraphContext } from "@/app/GraphContext";
+import { GraphContext } from "@/app/contexts/GraphContext";
 
 function ColorPicker({ setHue }: { setHue: Dispatch<SetStateAction<number>> }) {
 	const [left, setLeft] = useState(-5);

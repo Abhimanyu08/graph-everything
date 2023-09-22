@@ -1,5 +1,11 @@
 "use client";
-import { createContext, useEffect, useState } from "react";
+import {
+	Dispatch,
+	SetStateAction,
+	createContext,
+	useEffect,
+	useState,
+} from "react";
 
 export type GraphState =
 	| {
@@ -16,13 +22,24 @@ export type GraphState =
 			minimum: number;
 			maximum: number;
 	  };
+export type Tile = {
+	dateString: string;
+	graphTitle: string;
+	measurementType: GraphState["measurementType"];
+	maximum: number;
+	minimum: number;
+};
 
 export const GraphContext = createContext<{
 	graphs: Map<string, GraphState>;
 	refreshGraphs: () => void;
+	editingTile: Tile | null;
+	setEditingTile: Dispatch<SetStateAction<Tile | null>>;
 }>({
 	graphs: new Map(),
 	refreshGraphs: () => {},
+	editingTile: null,
+	setEditingTile: () => {},
 });
 
 export default function GraphContextProvider({
@@ -31,6 +48,7 @@ export default function GraphContextProvider({
 	children: React.ReactNode;
 }) {
 	const [graphs, setGraphs] = useState<Map<string, GraphState>>(new Map());
+	const [editingTile, setEditingTile] = useState<Tile | null>(null);
 	const [refetchGraphs, setRefetchGraphs] = useState(true);
 
 	useEffect(() => {
@@ -50,7 +68,9 @@ export default function GraphContextProvider({
 	const refreshGraphs = () => setRefetchGraphs(true);
 
 	return (
-		<GraphContext.Provider value={{ graphs, refreshGraphs }}>
+		<GraphContext.Provider
+			value={{ graphs, refreshGraphs, editingTile, setEditingTile }}
+		>
 			{children}
 		</GraphContext.Provider>
 	);

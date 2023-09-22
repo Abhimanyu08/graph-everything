@@ -1,7 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import GraphContextProvider from "./GraphContext";
+import GraphContextProvider from "./contexts/GraphContext";
+import IndexedDbContextProvider from "./contexts/IndexedDbContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,9 @@ export default function RootLayout({
 			<body
 				className={`${inter.className} flex overflow-hidden my-20 flex-col  px-16 w-screen min-h-screen dark overflow-y-auto`}
 			>
-				<GraphContextProvider>{children}</GraphContextProvider>
+				<IndexedDbContextProvider>
+					<GraphContextProvider>{children}</GraphContextProvider>
+				</IndexedDbContextProvider>
 			</body>
 		</html>
 	);

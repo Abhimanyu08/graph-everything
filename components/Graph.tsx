@@ -1,19 +1,21 @@
-import { GraphState } from "@/app/GraphContext";
-import React from "react";
+import { GraphContext, GraphState } from "@/app/contexts/GraphContext";
+import { addDays } from "date-fns";
+import React, { useContext } from "react";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title, frequency, measurementType } = graphState;
 	return (
 		<div
-			className="flex flex-col w-fit p-4 gap-4"
+			className="flex flex-col  w-fit p-4 gap-4 "
 			style={{
-				backgroundColor: `hsl(${hue}deg, 25%, 10%)`,
-				boxShadow: `1px 1px 10px 0.2px ${hslToHex(hue, 50, 50)}`,
+				backgroundColor: `hsl(${hue}deg, 12%, 10%)`,
+				boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
+				// borderColor: `hsl(${hue}deg, 50%, 50%)`,
 			}}
 		>
 			<h1
-				className="font-serif text-xl"
-				style={{ color: `hsl(${hue}deg 50% 50%)` }}
+				className="font-serif text-xl font-medium"
+				style={{ color: `hsl(${hue}deg 30% 50%)` }}
 			>
 				{title}
 			</h1>
@@ -23,38 +25,58 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 }
 
 function Graph({ graphState }: { graphState: GraphState }) {
-	const { hue, title, frequency, measurementType } = graphState;
+	const currentDate = new Date();
 	return (
-		<div className="w-[768px] h-fit rounded-sm grid grid-cols-37 grid-rows-10  gap-[2px]  grid-flow-col">
-			{Array.from({ length: 365 }).map(() => {
+		<div className="w-[768px] h-fit  grid grid-cols-37  grid-rows-10  gap-[2px]  grid-flow-col">
+			{Array.from({ length: 365 }).map((_, i) => {
 				return (
-					<div
-						className="rounded-sm h-4"
-						style={{
-							backgroundColor: `hsl(${hue}deg 100% ${Math.round(
-								Math.max(0.1, Math.random()) * 50
-							)}%)`,
-							// backgroundColor: `hsl(0deg 0% 10%)`,
-						}}
-					></div>
+					<GraphTile
+						graphState={graphState}
+						dateString={addDays(currentDate, i)
+							.toString()
+							.slice(3, 16)}
+					/>
 				);
 			})}
 		</div>
 	);
 }
 
-function GraphVisual({ hue }: { hue: number }) {}
-
-function hslToHex(h: number, s: number, l: number) {
-	l /= 100;
-	const a = (s * Math.min(l, 1 - l)) / 100;
-	const f = (n: number) => {
-		const k = (n + h / 30) % 12;
-		const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-		return Math.round(255 * color)
-			.toString(16)
-			.padStart(2, "0"); // Convert to Hex and ensure 2 digits
-	};
-	return `#${f(0)}${f(8)}${f(4)}`;
+function GraphTile({
+	graphState,
+	dateString,
+}: {
+	graphState: GraphState;
+	dateString: string;
+}) {
+	const { hue, title, measurementType } = graphState;
+	let minimum: number, maximum: number;
+	if (measurementType === "ordinal") {
+		minimum = graphState.minimum;
+		maximum = graphState.maximum;
+	}
+	const { setEditingTile } = useContext(GraphContext);
+	return (
+		<div
+			className="rounded-sm h-[18px] border-[1px]"
+			style={{
+				// backgroundColor: `hsl(${hue}deg 100% ${Math.round(
+				// 	Math.max(0.1, Math.random()) * 50
+				// )}%)`,
+				borderColor: `hsl(${hue}deg 100% 8%)`,
+				backgroundColor: `hsl(0deg 100% 0%)`,
+			}}
+			onClick={() =>
+				setEditingTile({
+					dateString,
+					graphTitle: title,
+					measurementType,
+					maximum: maximum || 0,
+					minimum: minimum || 0,
+				})
+			}
+		></div>
+	);
 }
+
 export default GraphWithDetails;
