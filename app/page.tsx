@@ -1,18 +1,18 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-
-import GraphForm from "@/components/GraphForm";
-import { Button } from "@/components/ui/button";
+"use client";
+import NewGraphDialog from "@/components/NewGraphDialog";
+import { useContext } from "react";
+import { GraphContext } from "./GraphContext";
 import Graph from "@/components/Graph";
+import GraphWithDetails from "@/components/Graph";
 
 export default function Home() {
+	const { graphs } = useContext(GraphContext);
 	return (
-		<Dialog>
-			<DialogTrigger>
-				<Button>New Graph</Button>
-			</DialogTrigger>
-			<DialogContent>
-				<GraphForm />
-			</DialogContent>
-		</Dialog>
+		<div className="flex flex-col gap-5">
+			{Array.from(graphs.values()).map((graphState) => (
+				<GraphWithDetails graphState={graphState} />
+			))}
+			<NewGraphDialog className="self-start" />
+		</div>
 	);
 }

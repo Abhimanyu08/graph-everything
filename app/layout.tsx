@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import GraphContextProvider from "./GraphContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +18,9 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${inter.className} flex flex-col  w-screen h-screen dark`}
+				className={`${inter.className} flex overflow-hidden my-20 flex-col  px-16 w-screen min-h-screen dark overflow-y-auto`}
 			>
-				{children}
+				<GraphContextProvider>{children}</GraphContextProvider>
 			</body>
 		</html>
 	);

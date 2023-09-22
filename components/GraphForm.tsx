@@ -1,6 +1,12 @@
 "use client";
 import { Info } from "lucide-react";
-import React, { useEffect, useRef } from "react";
+import React, {
+	Dispatch,
+	SetStateAction,
+	useContext,
+	useEffect,
+	useRef,
+} from "react";
 import { Button } from "./ui/button";
 import {
 	DialogHeader,
@@ -25,18 +31,22 @@ import {
 } from "./ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { useState } from "react";
+import { GraphContext } from "@/app/GraphContext";
 
-function ColorPicker() {
+function ColorPicker({ setHue }: { setHue: Dispatch<SetStateAction<number>> }) {
 	const [left, setLeft] = useState(-5);
 	const [containerLeft, setContainerLeft] = useState<number | null>(null);
 	const [containerWidth, setContainerWidth] = useState<number | null>(null);
 	const pickerRef = useRef<HTMLDivElement>(null);
 	useEffect(() => {
-		setContainerLeft(
-			pickerRef.current?.getBoundingClientRect().left || null
-		);
-		setContainerWidth(pickerRef.current?.clientWidth || null);
-	}, []);
+		setHue(Math.max(0, Math.round(left * 2)));
+		if (containerLeft === null || containerWidth === null) {
+			setContainerLeft(
+				pickerRef.current?.getBoundingClientRect().left || null
+			);
+			setContainerWidth(pickerRef.current?.clientWidth || null);
+		}
+	}, [left]);
 	return (
 		<div className="grid grid-cols-6  items-center gap-4">
 			<Label htmlFor="name" className="text-left  col-span-2">
@@ -101,8 +111,42 @@ function ColorPicker() {
 	);
 }
 
-function GraphForm() {
-	const [mtype, setMtype] = useState<"ratio" | "ordinal">("ratio");
+function GraphForm({
+	setOpen,
+}: {
+	setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
+	const [measurementType, setMeasurementType] = useState<"ratio" | "ordinal">(
+		"ratio"
+	);
+	const [frequency, setFrequency] = useState<"weekly" | "monthly" | "daily">(
+		"daily"
+	);
+	const [hue, setHue] = useState(0);
+	const titleRef = useRef<HTMLInputElement>(null);
+	const minimumRef = useRef<HTMLInputElement>(null);
+	const maximumRef = useRef<HTMLInputElement>(null);
+
+	const { refreshGraphs } = useContext(GraphContext);
+
+	const onSave = () => {
+		const graphDetails = {
+			title: titleRef.current?.value,
+			hue,
+			frequency,
+			measurementType,
+			minimum: minimumRef.current?.value,
+			maximum: maximumRef.current?.value,
+		};
+
+		localStorage.setItem(
+			`graph-${Date.now()}`,
+			JSON.stringify(graphDetails)
+		);
+
+		setOpen(false);
+		refreshGraphs();
+	};
 	return (
 		<>
 			<DialogHeader>
@@ -114,21 +158,27 @@ function GraphForm() {
 
 			<div className="grid gap-4 py-4">
 				<div className="grid grid-cols-4 items-center gap-4">
-					<Label htmlFor="name" className="text-left">
+					<Label htmlFor="title" className="text-left">
 						Graph Title
 					</Label>
 					<Input
-						id="name"
+						id="title"
 						defaultValue="Number of Pomodoros"
 						className="col-span-3"
+						ref={titleRef}
 					/>
 				</div>
-				<ColorPicker />
+				<ColorPicker setHue={setHue} />
 				<div className="grid grid-cols-8 items-center gap-4">
-					<Label htmlFor="username" className="text-left col-span-4">
+					<Label htmlFor="frequency" className="text-left col-span-4">
 						How often would you track this thing?
 					</Label>
-					<Select defaultValue="daily">
+					<Select
+						defaultValue="daily"
+						onValueChange={(value) =>
+							setFrequency(value as typeof frequency)
+						}
+					>
 						<SelectTrigger className="col-span-4">
 							<SelectValue />
 						</SelectTrigger>
@@ -143,7 +193,7 @@ function GraphForm() {
 				</div>
 				<div className="grid grid-cols-8 items-center gap-4">
 					<Label
-						htmlFor="name"
+						htmlFor="measurement"
 						className="text-left col-span-4 flex items-start"
 					>
 						What type of measurement is it?
@@ -172,7 +222,7 @@ function GraphForm() {
 					<RadioGroup
 						defaultValue="ratio"
 						className="flex col-span-4 justify-end gap-5"
-						onValueChange={(e) => setMtype(e as any)}
+						onValueChange={(e) => setMeasurementType(e as any)}
 					>
 						<div className="flex items-center space-x-2">
 							<RadioGroupItem value="ratio" id="ratio" />
@@ -185,7 +235,7 @@ function GraphForm() {
 					</RadioGroup>
 				</div>
 
-				{mtype === "ordinal" && (
+				{measurementType === "ordinal" && (
 					<>
 						<div className="grid grid-cols-8 items-center gap-4">
 							<Label className="col-span-4">
@@ -196,6 +246,7 @@ function GraphForm() {
 								type="number"
 								className="col-span-4"
 								defaultValue={0}
+								ref={minimumRef}
 							/>
 						</div>
 						<div className="grid grid-cols-8 items-center gap-4">
@@ -207,13 +258,16 @@ function GraphForm() {
 								type="number"
 								className="col-span-4"
 								defaultValue={10}
+								ref={maximumRef}
 							/>
 						</div>
 					</>
 				)}
 			</div>
 			<DialogFooter>
-				<Button type="submit">Save changes</Button>
+				<Button type="submit" onClick={onSave}>
+					Save changes
+				</Button>
 			</DialogFooter>
 		</>
 	);
