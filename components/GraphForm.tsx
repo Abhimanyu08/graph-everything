@@ -128,6 +128,7 @@ function GraphForm({
 	const maximumRef = useRef<HTMLInputElement>(null);
 
 	const { refreshGraphs } = useContext(GraphContext);
+	const timeStamp = Date.now();
 
 	const onSave = () => {
 		const graphDetails = {
@@ -137,10 +138,11 @@ function GraphForm({
 			measurementType,
 			minimum: minimumRef.current?.value,
 			maximum: maximumRef.current?.value,
+			timeStamp: timeStamp,
 		};
 
 		localStorage.setItem(
-			`graph-${Date.now()}`,
+			`graph-${timeStamp}`,
 			JSON.stringify(graphDetails)
 		);
 

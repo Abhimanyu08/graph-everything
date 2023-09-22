@@ -26,6 +26,9 @@ function IndexedDbContextProvider({ children }: { children: React.ReactNode }) {
 				mdObjectStore.createIndex("noteIndex", "note", {
 					unique: false,
 				});
+				mdObjectStore.createIndex("titleIndex", "graphTitle", {
+					unique: false,
+				});
 			}
 		};
 	}, []);

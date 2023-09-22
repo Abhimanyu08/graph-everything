@@ -13,6 +13,7 @@ export type GraphState =
 			hue: number;
 			frequency: "daily" | "weekly" | "monthly";
 			measurementType: "ratio";
+			timeStamp: number;
 	  }
 	| {
 			title: string;
@@ -21,13 +22,21 @@ export type GraphState =
 			measurementType: "ordinal";
 			minimum: number;
 			maximum: number;
+			timeStamp: number;
 	  };
+export type StoredTile = {
+	timeStamp: number;
+	graphTitle: string;
+	amount: number;
+	note: string;
+};
 export type Tile = {
-	dateString: string;
+	timeStamp?: number;
 	graphTitle: string;
 	measurementType: GraphState["measurementType"];
 	maximum: number;
 	minimum: number;
+	stats?: StoredTile;
 };
 
 export const GraphContext = createContext<{

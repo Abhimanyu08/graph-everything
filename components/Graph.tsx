@@ -1,6 +1,12 @@
-import { GraphContext, GraphState } from "@/app/contexts/GraphContext";
-import { addDays } from "date-fns";
-import React, { useContext } from "react";
+import {
+	GraphContext,
+	GraphState,
+	StoredTile,
+	Tile,
+} from "@/app/contexts/GraphContext";
+import { IndexedDbContext } from "@/app/contexts/IndexedDbContext";
+import { addDays, formatDistance, isSameDay } from "date-fns";
+import React, { useContext, useEffect, useState } from "react";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title, frequency, measurementType } = graphState;
@@ -25,18 +31,66 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 }
 
 function Graph({ graphState }: { graphState: GraphState }) {
-	const currentDate = new Date();
+	const { documentDb } = useContext(IndexedDbContext);
+	const [timestampToTile, setTimestampToTile] = useState<Map<
+		number,
+		StoredTile
+	> | null>(null);
+	function getTilesByTitle(
+		documentDb: IDBDatabase,
+		title: string
+	): Promise<Map<number, StoredTile>> {
+		return new Promise((resolve, reject) => {
+			const transaction = documentDb.transaction("tile", "readonly");
+			const store = transaction.objectStore("tile");
+			const index = store.index("titleIndex");
+			const request = index.getAll(IDBKeyRange.only(title));
+
+			request.onsuccess = () => {
+				// Sort the results by timeStamp in ascending order
+				const results = request.result.sort(
+					(a, b) => a.timeStamp - b.timeStamp
+				) as StoredTile[];
+
+				let timeStampToTile = new Map<number, StoredTile>();
+
+				for (let result of results) {
+					timeStampToTile.set(result.timeStamp, result);
+				}
+
+				resolve(timeStampToTile);
+			};
+
+			request.onerror = () => {
+				reject(request.error);
+			};
+		});
+	}
+
+	useEffect(() => {
+		if (!documentDb) return;
+		getTilesByTitle(documentDb, graphState.title).then((res) => {
+			if (!res || res.size === 0) return;
+			setTimestampToTile(res);
+		});
+	}, [documentDb]);
 	return (
 		<div className="w-[768px] h-fit  grid grid-cols-37  grid-rows-10  gap-[2px]  grid-flow-col">
 			{Array.from({ length: 365 }).map((_, i) => {
-				return (
-					<GraphTile
-						graphState={graphState}
-						dateString={addDays(currentDate, i)
-							.toString()
-							.slice(3, 16)}
-					/>
+				let tile: StoredTile | undefined = undefined;
+				const currentTileDate = addDays(
+					new Date(graphState.timeStamp),
+					i
 				);
+
+				if (timestampToTile) {
+					for (let key of Array.from(timestampToTile.keys())) {
+						if (isSameDay(currentTileDate, new Date(key))) {
+							tile = timestampToTile.get(key)!;
+						}
+					}
+				}
+				return <GraphTile graphState={graphState} tile={tile} />;
 			})}
 		</div>
 	);
@@ -44,10 +98,10 @@ function Graph({ graphState }: { graphState: GraphState }) {
 
 function GraphTile({
 	graphState,
-	dateString,
+	tile,
 }: {
 	graphState: GraphState;
-	dateString: string;
+	tile?: StoredTile;
 }) {
 	const { hue, title, measurementType } = graphState;
 	let minimum: number, maximum: number;
@@ -68,11 +122,12 @@ function GraphTile({
 			}}
 			onClick={() =>
 				setEditingTile({
-					dateString,
+					timeStamp: tile?.timeStamp,
 					graphTitle: title,
 					measurementType,
 					maximum: maximum || 0,
 					minimum: minimum || 0,
+					stats: tile,
 				})
 			}
 		></div>

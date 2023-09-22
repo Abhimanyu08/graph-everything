@@ -1,4 +1,4 @@
-import { Tile } from "@/app/contexts/GraphContext";
+import { StoredTile, Tile } from "@/app/contexts/GraphContext";
 import React, { useContext, useState } from "react";
 import { Input } from "./ui/input";
 import Tiptap from "./Tiptap";
@@ -9,12 +9,12 @@ import StarterKit from "@tiptap/starter-kit";
 import { IndexedDbContext } from "@/app/contexts/IndexedDbContext";
 
 function GraphTileEditor({ tile }: { tile: Tile }) {
-	const [amount, setAmount] = useState(tile.minimum || null);
+	const [amount, setAmount] = useState(tile.stats?.amount || null);
 	const { documentDb } = useContext(IndexedDbContext);
 
 	const editor = useEditor({
 		extensions: [StarterKit],
-		content: "",
+		content: tile.stats?.note || "",
 		editorProps: {
 			attributes: {
 				class: "h-full p-2 ",
@@ -24,15 +24,16 @@ function GraphTileEditor({ tile }: { tile: Tile }) {
 
 	const onSave = () => {
 		if (!documentDb) return;
-		const timeStamp = Date.now();
+
+		const timeStamp = tile.timeStamp || Date.now();
 		const tileObjectStore = documentDb
 			.transaction("tile", "readwrite")
 			.objectStore("tile");
-		const tileDetails = {
+		const tileDetails: StoredTile = {
 			timeStamp,
 			graphTitle: tile.graphTitle,
-			amount,
-			note: editor?.getHTML(),
+			amount: amount || 0,
+			note: editor?.getHTML() || "",
 		};
 		tileObjectStore.add(tileDetails);
 	};
@@ -40,7 +41,7 @@ function GraphTileEditor({ tile }: { tile: Tile }) {
 	return (
 		<div className="flex flex-col p-4 gap-4 h-full">
 			<h1>
-				{tile.graphTitle} - {tile.dateString}
+				{tile.graphTitle} - {tile.timeStamp}
 			</h1>
 			{tile.measurementType === "ordinal" ? (
 				<Input
