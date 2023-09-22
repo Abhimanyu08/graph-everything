@@ -1,5 +1,5 @@
 import { StoredTile, Tile } from "@/app/contexts/GraphContext";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import Tiptap from "./Tiptap";
 import { Button } from "./ui/button";
@@ -21,11 +21,16 @@ function GraphTileEditor({ tile }: { tile: Tile }) {
 			},
 		},
 	});
+	useEffect(() => {
+		return () => {
+			editor?.destroy();
+		};
+	}, []);
 
 	const onSave = () => {
 		if (!documentDb) return;
 
-		const timeStamp = tile.timeStamp || Date.now();
+		const timeStamp = tile.stats?.timeStamp || tile.timeStamp!;
 		const tileObjectStore = documentDb
 			.transaction("tile", "readwrite")
 			.objectStore("tile");
@@ -35,13 +40,16 @@ function GraphTileEditor({ tile }: { tile: Tile }) {
 			amount: amount || 0,
 			note: editor?.getHTML() || "",
 		};
-		tileObjectStore.add(tileDetails);
+		tileObjectStore.put(tileDetails);
+		if (tile.refreshTile) {
+			tile.refreshTile();
+		}
 	};
 
 	return (
 		<div className="flex flex-col p-4 gap-4 h-full">
 			<h1>
-				{tile.graphTitle} - {tile.timeStamp}
+				{tile.graphTitle} - {new Date(tile.timeStamp!).toDateString()}
 			</h1>
 			{tile.measurementType === "ordinal" ? (
 				<Input
@@ -62,7 +70,7 @@ function GraphTileEditor({ tile }: { tile: Tile }) {
 			)}
 			<EditorContent
 				editor={editor}
-				className="grow border-border border-[1px] rounded-sm prose prose-invert"
+				className="grow border-border border-[1px] p-2 rounded-sm prose prose-invert prose-p:m-0"
 			/>
 			<Button className="self-end w-fit" onClick={onSave}>
 				Save Changes

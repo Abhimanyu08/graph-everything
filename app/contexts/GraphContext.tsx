@@ -37,6 +37,7 @@ export type Tile = {
 	maximum: number;
 	minimum: number;
 	stats?: StoredTile;
+	refreshTile?: () => void;
 };
 
 export const GraphContext = createContext<{

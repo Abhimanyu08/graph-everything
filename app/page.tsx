@@ -18,7 +18,10 @@ export default function Home() {
 			</div>
 			{editingTile && (
 				<div className="grow h-1/2 border-border border-2">
-					<GraphTileEditor tile={editingTile} />
+					<GraphTileEditor
+						tile={editingTile}
+						key={editingTile.timeStamp}
+					/>
 				</div>
 			)}
 		</div>

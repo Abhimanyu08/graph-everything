@@ -1,3 +1,4 @@
+"use client";
 import {
 	GraphContext,
 	GraphState,
@@ -80,7 +81,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 				let tile: StoredTile | undefined = undefined;
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i
+					i - 10
 				);
 
 				if (timestampToTile) {
@@ -90,7 +91,13 @@ function Graph({ graphState }: { graphState: GraphState }) {
 						}
 					}
 				}
-				return <GraphTile graphState={graphState} tile={tile} />;
+				return (
+					<GraphTile
+						graphState={graphState}
+						timeStamp={currentTileDate.getTime()}
+						tile={tile}
+					/>
+				);
 			})}
 		</div>
 	);
@@ -99,17 +106,40 @@ function Graph({ graphState }: { graphState: GraphState }) {
 function GraphTile({
 	graphState,
 	tile,
+	timeStamp,
 }: {
 	graphState: GraphState;
 	tile?: StoredTile;
+	timeStamp: number;
 }) {
+	const [tileStats, setTileStats] = useState(tile);
 	const { hue, title, measurementType } = graphState;
 	let minimum: number, maximum: number;
 	if (measurementType === "ordinal") {
 		minimum = graphState.minimum;
 		maximum = graphState.maximum;
 	}
+
 	const { setEditingTile } = useContext(GraphContext);
+	const { documentDb } = useContext(IndexedDbContext);
+
+	const refreshTile = () => {
+		const tileObjectStore = documentDb
+			?.transaction("tile")
+			.objectStore("tile");
+		const request = tileObjectStore?.get(tile?.timeStamp || timeStamp);
+		request?.addEventListener("success", () => {
+			const updatedTile = request.result;
+			setTileStats(updatedTile);
+		});
+	};
+
+	useEffect(() => {
+		if (!tileStats) {
+			setTileStats(tile);
+		}
+	}, [tile]);
+
 	return (
 		<div
 			className="rounded-sm h-[18px] border-[1px]"
@@ -120,16 +150,21 @@ function GraphTile({
 				borderColor: `hsl(${hue}deg 100% 8%)`,
 				backgroundColor: `hsl(0deg 100% 0%)`,
 			}}
-			onClick={() =>
-				setEditingTile({
-					timeStamp: tile?.timeStamp,
-					graphTitle: title,
-					measurementType,
-					maximum: maximum || 0,
-					minimum: minimum || 0,
-					stats: tile,
-				})
-			}
+			onClick={() => {
+				const todayDate = addDays(new Date(), 1);
+				todayDate.setHours(0, 0, 0, 0);
+				if (todayDate > new Date(timeStamp)) {
+					setEditingTile({
+						timeStamp: timeStamp,
+						graphTitle: title,
+						measurementType,
+						maximum: maximum || 0,
+						minimum: minimum || 0,
+						stats: tileStats,
+						refreshTile: refreshTile,
+					});
+				}
+			}}
 		></div>
 	);
 }
