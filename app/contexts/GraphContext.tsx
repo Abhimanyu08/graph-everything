@@ -40,19 +40,19 @@ export type StoredTile = {
 export const GraphContext = createContext<{
 	graphs: Map<string, GraphState>;
 	refreshGraphs: () => void;
-	editingTile: StoredTile | null;
-	setEditingTile: Dispatch<SetStateAction<StoredTile | null>>;
-	editingGraph: GraphState | null;
-	setEditingGraph: Dispatch<SetStateAction<GraphState | null>>;
+	// editingTile: StoredTile | null;
+	// setEditingTile: Dispatch<SetStateAction<StoredTile | null>>;
+	// editingGraph: GraphState | null;
+	// setEditingGraph: Dispatch<SetStateAction<GraphState | null>>;
 	dateToHighlight: Date;
 	setDateToHighlight: Dispatch<SetStateAction<Date>>;
 }>({
 	graphs: new Map(),
 	refreshGraphs: () => {},
-	editingTile: null,
-	setEditingTile: () => {},
-	editingGraph: null,
-	setEditingGraph: () => {},
+	// editingTile: null,
+	// setEditingTile: () => {},
+	// editingGraph: null,
+	// setEditingGraph: () => {},
 	dateToHighlight: new Date(),
 	setDateToHighlight: () => {},
 });
@@ -63,8 +63,8 @@ export default function GraphContextProvider({
 	children: React.ReactNode;
 }) {
 	const [graphs, setGraphs] = useState<Map<string, GraphState>>(new Map());
-	const [editingTile, setEditingTile] = useState<StoredTile | null>(null);
-	const [editingGraph, setEditingGraph] = useState<GraphState | null>(null);
+	// const [editingTile, setEditingTile] = useState<StoredTile | null>(null);
+	// const [editingGraph, setEditingGraph] = useState<GraphState | null>(null);
 	const [dateToHighlight, setDateToHighlight] = useState(new Date());
 	const [refetchGraphs, setRefetchGraphs] = useState(true);
 
@@ -89,10 +89,10 @@ export default function GraphContextProvider({
 			value={{
 				graphs,
 				refreshGraphs,
-				editingTile,
-				setEditingTile,
-				editingGraph,
-				setEditingGraph,
+				// editingTile,
+				// setEditingTile,
+				// editingGraph,
+				// setEditingGraph,
 				dateToHighlight,
 				setDateToHighlight,
 			}}

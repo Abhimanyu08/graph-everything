@@ -181,7 +181,7 @@ function GraphTile({
 								dateToHighlight,
 								new Date(timeStamp)
 							)
-								? "white"
+								? `hsl(${hue}deg 100% 50%)`
 								: `hsl(${hue}deg 100% 8%)`,
 						}}
 						onClick={() => {
@@ -189,8 +189,6 @@ function GraphTile({
 							todayDate.setHours(0, 0, 0, 0);
 							console.log(todayDate, new Date(timeStamp));
 							if (todayDate > new Date(timeStamp)) {
-								// setEditingGraph(graphState);
-								// setEditingTile({ ...tileStats, refreshTile });
 								setOpen(true);
 							}
 						}}
@@ -205,7 +203,8 @@ function GraphTile({
 							color: `hsl(${graphState.hue}deg 50% 50%)`,
 						}}
 					>
-						{graphState.title}: {tile.amount}
+						{graphState.title}: {tile.amount} on{" "}
+						{new Date(timeStamp).toDateString().slice(4)}
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
