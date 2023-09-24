@@ -14,6 +14,8 @@ export type GraphState =
 			frequency: "daily" | "weekly" | "monthly";
 			measurementType: "ratio";
 			timeStamp: number;
+			maximumTillNow: number;
+			key: string;
 	  }
 	| {
 			title: string;
@@ -22,34 +24,33 @@ export type GraphState =
 			measurementType: "ordinal";
 			minimum: number;
 			maximum: number;
+			maximumTillNow?: number;
 			timeStamp: number;
+			key: string;
 	  };
 export type StoredTile = {
 	timeStamp: number;
 	graphTitle: string;
 	amount: number;
 	note: string;
-};
-export type Tile = {
-	timeStamp?: number;
-	graphTitle: string;
-	measurementType: GraphState["measurementType"];
-	maximum: number;
-	minimum: number;
-	stats?: StoredTile;
+
 	refreshTile?: () => void;
 };
 
 export const GraphContext = createContext<{
 	graphs: Map<string, GraphState>;
 	refreshGraphs: () => void;
-	editingTile: Tile | null;
-	setEditingTile: Dispatch<SetStateAction<Tile | null>>;
+	editingTile: StoredTile | null;
+	setEditingTile: Dispatch<SetStateAction<StoredTile | null>>;
+	editingGraph: GraphState | null;
+	setEditingGraph: Dispatch<SetStateAction<GraphState | null>>;
 }>({
 	graphs: new Map(),
 	refreshGraphs: () => {},
 	editingTile: null,
 	setEditingTile: () => {},
+	editingGraph: null,
+	setEditingGraph: () => {},
 });
 
 export default function GraphContextProvider({
@@ -58,7 +59,8 @@ export default function GraphContextProvider({
 	children: React.ReactNode;
 }) {
 	const [graphs, setGraphs] = useState<Map<string, GraphState>>(new Map());
-	const [editingTile, setEditingTile] = useState<Tile | null>(null);
+	const [editingTile, setEditingTile] = useState<StoredTile | null>(null);
+	const [editingGraph, setEditingGraph] = useState<GraphState | null>(null);
 	const [refetchGraphs, setRefetchGraphs] = useState(true);
 
 	useEffect(() => {
@@ -79,7 +81,14 @@ export default function GraphContextProvider({
 
 	return (
 		<GraphContext.Provider
-			value={{ graphs, refreshGraphs, editingTile, setEditingTile }}
+			value={{
+				graphs,
+				refreshGraphs,
+				editingTile,
+				setEditingTile,
+				editingGraph,
+				setEditingGraph,
+			}}
 		>
 			{children}
 		</GraphContext.Provider>

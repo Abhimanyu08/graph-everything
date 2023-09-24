@@ -3,26 +3,33 @@ import {
 	GraphContext,
 	GraphState,
 	StoredTile,
-	Tile,
 } from "@/app/contexts/GraphContext";
 import { IndexedDbContext } from "@/app/contexts/IndexedDbContext";
-import { addDays, formatDistance, isSameDay } from "date-fns";
-import React, { useContext, useEffect, useState } from "react";
+import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { addDays, isSameDay } from "date-fns";
+import { useContext, useEffect, useState } from "react";
+import GraphTileEditor from "./GraphTileEditor";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "./ui/tooltip";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title, frequency, measurementType } = graphState;
 	return (
 		<div
-			className="flex flex-col  w-fit p-4 gap-4 "
+			className="flex flex-col border-[1px] w-fit p-4 gap-4 "
 			style={{
 				backgroundColor: `hsl(${hue}deg, 12%, 10%)`,
-				boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
-				// borderColor: `hsl(${hue}deg, 50%, 50%)`,
+				// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
+				borderColor: `hsl(${hue}deg, 50%, 20%)`,
 			}}
 		>
 			<h1
-				className="font-serif text-xl font-medium"
-				style={{ color: `hsl(${hue}deg 30% 50%)` }}
+				className="font-text-xl font-medium"
+				style={{ color: `hsl(${hue}deg 50% 50%)` }}
 			>
 				{title}
 			</h1>
@@ -33,10 +40,12 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 
 function Graph({ graphState }: { graphState: GraphState }) {
 	const { documentDb } = useContext(IndexedDbContext);
+	const { graphs } = useContext(GraphContext);
 	const [timestampToTile, setTimestampToTile] = useState<Map<
 		number,
 		StoredTile
 	> | null>(null);
+	const [maximumAmount, setMaximumAmount] = useState(0);
 	function getTilesByTitle(
 		documentDb: IDBDatabase,
 		title: string
@@ -54,11 +63,15 @@ function Graph({ graphState }: { graphState: GraphState }) {
 				) as StoredTile[];
 
 				let timeStampToTile = new Map<number, StoredTile>();
-
+				let maximum = 0;
 				for (let result of results) {
 					timeStampToTile.set(result.timeStamp, result);
+					if (result.amount > maximum) {
+						maximum = result.amount;
+					}
 				}
 
+				setMaximumAmount(maximum);
 				resolve(timeStampToTile);
 			};
 
@@ -71,19 +84,28 @@ function Graph({ graphState }: { graphState: GraphState }) {
 	useEffect(() => {
 		if (!documentDb) return;
 		getTilesByTitle(documentDb, graphState.title).then((res) => {
-			if (!res || res.size === 0) return;
 			setTimestampToTile(res);
 		});
-	}, [documentDb]);
+	}, [documentDb, graphs]);
+
+	if (timestampToTile === null) {
+		return <p>Loading</p>;
+	}
+
 	return (
 		<div className="w-[768px] h-fit  grid grid-cols-37  grid-rows-10  gap-[2px]  grid-flow-col">
 			{Array.from({ length: 365 }).map((_, i) => {
-				let tile: StoredTile | undefined = undefined;
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i - 10
+					i - 30
 				);
 
+				let tile: StoredTile = {
+					timeStamp: currentTileDate.getTime(),
+					graphTitle: graphState.title,
+					amount: 0,
+					note: "",
+				};
 				if (timestampToTile) {
 					for (let key of Array.from(timestampToTile.keys())) {
 						if (isSameDay(currentTileDate, new Date(key))) {
@@ -93,7 +115,10 @@ function Graph({ graphState }: { graphState: GraphState }) {
 				}
 				return (
 					<GraphTile
-						graphState={graphState}
+						graphState={{
+							...graphState,
+							maximumTillNow: maximumAmount,
+						}}
 						timeStamp={currentTileDate.getTime()}
 						tile={tile}
 					/>
@@ -109,18 +134,21 @@ function GraphTile({
 	timeStamp,
 }: {
 	graphState: GraphState;
-	tile?: StoredTile;
+	tile: StoredTile;
 	timeStamp: number;
 }) {
 	const [tileStats, setTileStats] = useState(tile);
-	const { hue, title, measurementType } = graphState;
-	let minimum: number, maximum: number;
-	if (measurementType === "ordinal") {
-		minimum = graphState.minimum;
-		maximum = graphState.maximum;
+	const [open, setOpen] = useState(false);
+	const { hue } = graphState;
+
+	let maximumMeasurement = 0;
+	if (graphState.measurementType === "ratio") {
+		maximumMeasurement = graphState.maximumTillNow;
+	} else {
+		maximumMeasurement = graphState.maximum;
 	}
 
-	const { setEditingTile } = useContext(GraphContext);
+	const { setEditingTile, setEditingGraph } = useContext(GraphContext);
 	const { documentDb } = useContext(IndexedDbContext);
 
 	const refreshTile = () => {
@@ -134,39 +162,61 @@ function GraphTile({
 		});
 	};
 
-	useEffect(() => {
-		if (!tileStats) {
-			setTileStats(tile);
-		}
-	}, [tile]);
+	// useEffect(() => {
+	// 	setTileStats(tile);
+	// }, [tile]);
 
 	return (
-		<div
-			className="rounded-sm h-[18px] border-[1px]"
-			style={{
-				// backgroundColor: `hsl(${hue}deg 100% ${Math.round(
-				// 	Math.max(0.1, Math.random()) * 50
-				// )}%)`,
-				borderColor: `hsl(${hue}deg 100% 8%)`,
-				backgroundColor: `hsl(0deg 100% 0%)`,
-			}}
-			onClick={() => {
-				const todayDate = addDays(new Date(), 1);
-				todayDate.setHours(0, 0, 0, 0);
-				if (todayDate > new Date(timeStamp)) {
-					setEditingTile({
-						timeStamp: timeStamp,
-						graphTitle: title,
-						measurementType,
-						maximum: maximum || 0,
-						minimum: minimum || 0,
-						stats: tileStats,
-						refreshTile: refreshTile,
-					});
-				}
-			}}
-		></div>
+		<Dialog open={open}>
+			<TooltipProvider>
+				<Tooltip>
+					<DialogTrigger
+						className="rounded-sm h-[18px] border-[1px]"
+						style={{
+							backgroundColor: `hsl(${hue}deg 100% ${getLightnessFromAmount(
+								tileStats.amount,
+								maximumMeasurement
+							)}%)`,
+							borderColor: `hsl(${hue}deg 100% 8%)`,
+						}}
+						onClick={() => {
+							const todayDate = addDays(new Date(), 1);
+							todayDate.setHours(0, 0, 0, 0);
+							console.log(todayDate, new Date(timeStamp));
+							if (todayDate > new Date(timeStamp)) {
+								// setEditingGraph(graphState);
+								// setEditingTile({ ...tileStats, refreshTile });
+								setOpen(true);
+							}
+						}}
+					>
+						<TooltipTrigger></TooltipTrigger>
+					</DialogTrigger>
+					<TooltipContent>
+						{graphState.title}: {tile.amount}
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+			{open && (
+				<GraphTileEditor
+					closeEditor={() => setOpen(false)}
+					tile={{ ...tileStats, refreshTile }}
+					graph={graphState}
+				/>
+			)}
+		</Dialog>
 	);
+}
+
+function getLightnessFromAmount(amount: number, maximum: number) {
+	// This function converts any given amount to a lightnes percentage between 0 to 70%.
+	// Say someone tracks number of steps, maximum number of steps he has ever taken are 5000. If he walks 3000 steps on a day, then the tile corresponding to that day will have lightness value = (3000/5000)*70
+
+	if (amount === 0) return 0;
+	if (maximum === 0) return 50;
+	const lightness = (amount / maximum) * 50;
+
+	return lightness;
 }
 
 export default GraphWithDetails;
