@@ -82,7 +82,7 @@ function GraphForm({
 			<DialogHeader>
 				<DialogTitle>Graph Details</DialogTitle>
 				<DialogDescription>
-					Click save when you're done
+					{`Click save when you're done`}
 				</DialogDescription>
 			</DialogHeader>
 
@@ -101,7 +101,7 @@ function GraphForm({
 				<ColorPicker setHue={setHue} />
 				<div className="grid grid-cols-8 items-center gap-4">
 					<Label htmlFor="frequency" className="text-left col-span-4">
-						How often would you track this thing?
+						{`How often would you track this thing?`}
 					</Label>
 					<Select
 						defaultValue="daily"
@@ -136,7 +136,7 @@ function GraphForm({
 									className="w-96 text-lighttext"
 									side="left"
 								>
-									Say you decide to track number of pomodoros.
+									{`Say you decide to track number of pomodoros.
 									This can be measured exactly for eg. "10
 									pomodoros". If you decide to track "Quality
 									of meditation", you can't assign a number to
@@ -144,7 +144,7 @@ function GraphForm({
 									out of 5, 10 whatever. Therefore, "Number of
 									pomodoros" is a measurement of type "ratio",
 									while quality of meditation is measurement
-									of type "Ordinal"
+									of type "Ordinal"`}
 								</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>

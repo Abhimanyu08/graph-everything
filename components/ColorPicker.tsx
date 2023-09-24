@@ -71,6 +71,7 @@ export function ColorPicker({
 								if (!containerLeft) return;
 								setLeft(e.clientX - containerLeft);
 							}}
+							key={i}
 						></div>
 					);
 				})}

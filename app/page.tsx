@@ -3,7 +3,6 @@ import NewGraphDialog from "@/components/NewGraphDialog";
 import { useContext } from "react";
 import { GraphContext } from "./contexts/GraphContext";
 import GraphWithDetails from "@/components/Graph";
-import GraphTileEditor from "@/components/GraphTileEditor";
 import { Calendar } from "@/components/ui/calendar";
 
 export default function Home() {
@@ -13,7 +12,10 @@ export default function Home() {
 		<div className="flex w-full justify-between">
 			<div className="flex flex-col gap-5  items-center">
 				{Array.from(graphs.values()).map((graphState) => (
-					<GraphWithDetails graphState={graphState} />
+					<GraphWithDetails
+						graphState={graphState}
+						key={graphState.title}
+					/>
 				))}
 				<NewGraphDialog className="mt-2 self-start" />
 			</div>

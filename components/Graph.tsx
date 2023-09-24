@@ -121,6 +121,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 						}}
 						timeStamp={currentTileDate.getTime()}
 						tile={tile}
+						key={tile.timeStamp}
 					/>
 				);
 			})}
