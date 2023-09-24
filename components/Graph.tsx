@@ -148,7 +148,7 @@ function GraphTile({
 		maximumMeasurement = graphState.maximum;
 	}
 
-	const { setEditingTile, setEditingGraph } = useContext(GraphContext);
+	const { dateToHighlight } = useContext(GraphContext);
 	const { documentDb } = useContext(IndexedDbContext);
 
 	const refreshTile = () => {
@@ -171,13 +171,18 @@ function GraphTile({
 			<TooltipProvider>
 				<Tooltip>
 					<DialogTrigger
-						className="rounded-sm h-[18px] border-[1px]"
+						className={` rounded-sm h-[18px] border-[2px] hover:scale-105 active:scale-95`}
 						style={{
 							backgroundColor: `hsl(${hue}deg 100% ${getLightnessFromAmount(
 								tileStats.amount,
 								maximumMeasurement
 							)}%)`,
-							borderColor: `hsl(${hue}deg 100% 8%)`,
+							borderColor: isSameDay(
+								dateToHighlight,
+								new Date(timeStamp)
+							)
+								? "white"
+								: `hsl(${hue}deg 100% 8%)`,
 						}}
 						onClick={() => {
 							const todayDate = addDays(new Date(), 1);
@@ -190,9 +195,16 @@ function GraphTile({
 							}
 						}}
 					>
-						<TooltipTrigger></TooltipTrigger>
+						<TooltipTrigger className="w-full h-full duration-0"></TooltipTrigger>
 					</DialogTrigger>
-					<TooltipContent>
+					<TooltipContent
+						style={{
+							backgroundColor: `hsl(${graphState.hue}deg, 20%, 10%)`,
+							// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
+							borderColor: `hsl(${graphState.hue}deg, 100%, 20%)`,
+							color: `hsl(${graphState.hue}deg 50% 50%)`,
+						}}
+					>
 						{graphState.title}: {tile.amount}
 					</TooltipContent>
 				</Tooltip>

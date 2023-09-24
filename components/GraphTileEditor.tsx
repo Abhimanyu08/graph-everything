@@ -77,13 +77,21 @@ function GraphTileEditor({
 	return (
 		<DialogContent
 			className="flex flex-col p-4 gap-6  border-[1px]"
+			style={{
+				backgroundColor: `hsl(${graph.hue}deg, 20%, 10%)`,
+				// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
+				borderColor: `hsl(${graph.hue}deg, 100%, 20%)`,
+				color: `hsl(${graph.hue}deg 50% 50%)`,
+			}}
 			onClick={closeEditor}
 		>
-			<DialogHeader>
+			<DialogHeader className="ml-1 text-2xl font-serif mb-5">
 				{new Date(tile.timeStamp!).toDateString()}
 			</DialogHeader>
 			<div className="flex flex-col gap-2">
-				<Label htmlFor="amount">{tile.graphTitle} :</Label>
+				<Label htmlFor="amount" className="ml-1">
+					{tile.graphTitle} :
+				</Label>
 				{graph.measurementType === "ordinal" ? (
 					<Input
 						id="amount"
@@ -95,6 +103,9 @@ function GraphTileEditor({
 						onChange={(e) =>
 							setAmount(parseInt(e.currentTarget.value))
 						}
+						style={{
+							backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+						}}
 					/>
 				) : (
 					<Input
@@ -105,17 +116,28 @@ function GraphTileEditor({
 						onChange={(e) =>
 							setAmount(parseInt(e.currentTarget.value))
 						}
+						style={{
+							backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+						}}
 					/>
 				)}
 			</div>
 			<div className="flex flex-col gap-2">
-				<Label>Note:</Label>
+				<Label className="ml-1">Note:</Label>
 				<EditorContent
 					editor={editor}
 					className="grow border-border border-[1px]  rounded-sm prose prose-invert prose-p:m-0"
+					style={{
+						backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+					}}
 				/>
 			</div>
-			<Button className="self-end w-fit" size={"sm"} onClick={onSave}>
+			<Button
+				className="self-end w-fit"
+				size={"sm"}
+				onClick={onSave}
+				variant={"outline"}
+			>
 				Save Changes
 			</Button>
 		</DialogContent>
