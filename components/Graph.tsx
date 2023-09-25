@@ -29,9 +29,11 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 			style={{
 				backgroundColor: dark
 					? `hsl(${hue}deg, 20%, 15%)`
-					: `hsl(${hue}deg, 12%, 80%)`,
+					: `hsl(${hue}deg, 12%, 90%)`,
 				// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
-				borderColor: `hsl(${hue}deg, 50%, 20%)`,
+				borderColor: dark
+					? `hsl(${hue}deg, 50%, 20%)`
+					: `hsl(${hue}deg, 50%, 50%)`,
 			}}
 		>
 			<div className="flex justify-between">
