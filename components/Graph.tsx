@@ -191,7 +191,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 			{Array.from({ length: 365 }).map((_, i) => {
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i - 30
+					i
 				);
 
 				let tile: StoredTile = {
