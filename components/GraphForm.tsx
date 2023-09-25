@@ -30,14 +30,16 @@ import { ColorPicker } from "./ColorPicker";
 
 function GraphForm({
 	setOpen,
+	graphState,
 }: {
 	setOpen: Dispatch<SetStateAction<boolean>>;
+	graphState?: GraphState;
 }) {
 	const [measurementType, setMeasurementType] = useState<"ratio" | "ordinal">(
-		"ratio"
+		graphState?.measurementType || "ratio"
 	);
 	const [frequency, setFrequency] = useState<"weekly" | "monthly" | "daily">(
-		"daily"
+		graphState?.frequency || "daily"
 	);
 	const [hue, setHue] = useState(0);
 	const titleRef = useRef<HTMLInputElement>(null);
@@ -45,9 +47,10 @@ function GraphForm({
 	const maximumRef = useRef<HTMLInputElement>(null);
 
 	const { refreshGraphs } = useContext(GraphContext);
-	const timeStamp = Date.now();
 
 	const onSave = () => {
+		const timeStamp = Date.now();
+		const newGraphKey = `graph-${timeStamp}`;
 		const graphDetails: Partial<GraphState> = {
 			title: titleRef.current?.value || "No Title",
 			hue,
@@ -62,7 +65,7 @@ function GraphForm({
 					? parseInt(maximumRef.current?.value || "5")
 					: undefined,
 			timeStamp: timeStamp,
-			key: `graph-${timeStamp}`,
+			key: graphState?.key || newGraphKey,
 		};
 
 		if (graphDetails.measurementType === "ratio") {
@@ -70,7 +73,7 @@ function GraphForm({
 		}
 
 		localStorage.setItem(
-			`graph-${timeStamp}`,
+			graphState?.key || newGraphKey,
 			JSON.stringify(graphDetails)
 		);
 
@@ -93,18 +96,20 @@ function GraphForm({
 					</Label>
 					<Input
 						id="title"
-						defaultValue="Number of Pomodoros"
+						defaultValue={
+							graphState?.title || "Number of Pomodoros"
+						}
 						className="col-span-3"
 						ref={titleRef}
 					/>
 				</div>
-				<ColorPicker setHue={setHue} />
+				<ColorPicker setHue={setHue} hue={graphState?.hue} />
 				<div className="grid grid-cols-8 items-center gap-4">
 					<Label htmlFor="frequency" className="text-left col-span-4">
 						{`How often would you track this thing?`}
 					</Label>
 					<Select
-						defaultValue="daily"
+						defaultValue={graphState?.frequency || "daily"}
 						onValueChange={(value) =>
 							setFrequency(value as typeof frequency)
 						}
@@ -150,7 +155,7 @@ function GraphForm({
 						</TooltipProvider>
 					</Label>
 					<RadioGroup
-						defaultValue="ratio"
+						defaultValue={graphState?.measurementType || "ratio"}
 						className="flex col-span-4 justify-end gap-5"
 						onValueChange={(e) => setMeasurementType(e as any)}
 					>
@@ -175,7 +180,12 @@ function GraphForm({
 							<Input
 								type="number"
 								className="col-span-4"
-								defaultValue={0}
+								defaultValue={
+									(graphState?.measurementType ===
+										"ordinal" &&
+										graphState.minimum) ||
+									0
+								}
 								ref={minimumRef}
 							/>
 						</div>
@@ -187,7 +197,12 @@ function GraphForm({
 							<Input
 								type="number"
 								className="col-span-4"
-								defaultValue={10}
+								defaultValue={
+									(graphState?.measurementType ===
+										"ordinal" &&
+										graphState.maximum) ||
+									10
+								}
 								ref={maximumRef}
 							/>
 						</div>

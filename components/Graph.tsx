@@ -15,9 +15,13 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
+import { DialogContent } from "./ui/dialog";
+import GraphForm from "./GraphForm";
+import { Button } from "./ui/button";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title, frequency, measurementType } = graphState;
+	const [open, setOpen] = useState(false);
 	return (
 		<div
 			className="flex flex-col border-[1px] w-fit p-4 gap-4 "
@@ -27,12 +31,29 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 				borderColor: `hsl(${hue}deg, 50%, 20%)`,
 			}}
 		>
-			<h1
-				className="font-text-xl font-medium"
-				style={{ color: `hsl(${hue}deg 50% 50%)` }}
-			>
-				{title}
-			</h1>
+			<div className="flex justify-between">
+				<h1
+					className="font-text-xl font-medium"
+					style={{ color: `hsl(${hue}deg 50% 50%)` }}
+				>
+					{title}
+				</h1>
+				<Dialog open={open}>
+					<DialogTrigger>
+						<Button
+							variant={"outline"}
+							onClick={() => setOpen(true)}
+							size={"sm"}
+							className="h-6 py-4 px-4"
+						>
+							Edit
+						</Button>
+					</DialogTrigger>
+					<DialogContent onClick={() => setOpen(false)}>
+						<GraphForm setOpen={setOpen} graphState={graphState} />
+					</DialogContent>
+				</Dialog>
+			</div>
 			<Graph graphState={graphState} />
 		</div>
 	);
@@ -46,21 +67,19 @@ function Graph({ graphState }: { graphState: GraphState }) {
 		StoredTile
 	> | null>(null);
 	const [maximumAmount, setMaximumAmount] = useState(0);
-	function getTilesByTitle(
+	function getTilesByGraph(
 		documentDb: IDBDatabase,
-		title: string
+		graphId: string
 	): Promise<Map<number, StoredTile>> {
 		return new Promise((resolve, reject) => {
 			const transaction = documentDb.transaction("tile", "readonly");
 			const store = transaction.objectStore("tile");
-			const index = store.index("titleIndex");
-			const request = index.getAll(IDBKeyRange.only(title));
+			const index = store.index("graphIndex");
+			const request = index.getAll(IDBKeyRange.only(graphId));
 
 			request.onsuccess = () => {
 				// Sort the results by timeStamp in ascending order
-				const results = request.result.sort(
-					(a, b) => a.timeStamp - b.timeStamp
-				) as StoredTile[];
+				const results = request.result;
 
 				let timeStampToTile = new Map<number, StoredTile>();
 				let maximum = 0;
@@ -83,7 +102,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 
 	useEffect(() => {
 		if (!documentDb) return;
-		getTilesByTitle(documentDb, graphState.title).then((res) => {
+		getTilesByGraph(documentDb, graphState.key).then((res) => {
 			setTimestampToTile(res);
 		});
 	}, [documentDb, graphs]);
@@ -102,7 +121,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 
 				let tile: StoredTile = {
 					timeStamp: currentTileDate.getTime(),
-					graphTitle: graphState.title,
+					graphId: graphState.key,
 					amount: 0,
 					note: "",
 				};
@@ -204,7 +223,7 @@ function GraphTile({
 							color: `hsl(${graphState.hue}deg 50% 50%)`,
 						}}
 					>
-						{graphState.title}: {tile.amount} on{" "}
+						{graphState.title}: {tileStats.amount} on{" "}
 						{new Date(timeStamp).toDateString().slice(4)}
 					</TooltipContent>
 				</Tooltip>

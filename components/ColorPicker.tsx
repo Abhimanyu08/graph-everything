@@ -5,10 +5,12 @@ import { useState } from "react";
 
 export function ColorPicker({
 	setHue,
+	hue,
 }: {
 	setHue: Dispatch<SetStateAction<number>>;
+	hue?: number;
 }) {
-	const [left, setLeft] = useState(-5);
+	const [left, setLeft] = useState(hue ? Math.round(hue / 2) : -5);
 	const [containerLeft, setContainerLeft] = useState<number | null>(null);
 	const [containerWidth, setContainerWidth] = useState<number | null>(null);
 	const pickerRef = useRef<HTMLDivElement>(null);

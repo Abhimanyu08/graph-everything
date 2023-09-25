@@ -53,7 +53,7 @@ function GraphTileEditor({
 			.objectStore("tile");
 		const tileDetails: StoredTile = {
 			timeStamp,
-			graphTitle: tile.graphTitle,
+			graphId: graph.key,
 			amount: amount || 0,
 			note: editor?.getHTML() || "",
 		};
@@ -90,7 +90,7 @@ function GraphTileEditor({
 			</DialogHeader>
 			<div className="flex flex-col gap-2">
 				<Label htmlFor="amount" className="ml-1">
-					{tile.graphTitle} :
+					{graph.title} :
 				</Label>
 				{graph.measurementType === "ordinal" ? (
 					<Input

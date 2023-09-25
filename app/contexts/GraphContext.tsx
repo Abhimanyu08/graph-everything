@@ -30,7 +30,7 @@ export type GraphState =
 	  };
 export type StoredTile = {
 	timeStamp: number;
-	graphTitle: string;
+	graphId: string;
 	amount: number;
 	note: string;
 
@@ -40,6 +40,8 @@ export type StoredTile = {
 export const GraphContext = createContext<{
 	graphs: Map<string, GraphState>;
 	refreshGraphs: () => void;
+	graphToEdit: GraphState | null;
+	setGraphToEdit: Dispatch<SetStateAction<GraphState | null>>;
 	// editingTile: StoredTile | null;
 	// setEditingTile: Dispatch<SetStateAction<StoredTile | null>>;
 	// editingGraph: GraphState | null;
@@ -53,6 +55,8 @@ export const GraphContext = createContext<{
 	// setEditingTile: () => {},
 	// editingGraph: null,
 	// setEditingGraph: () => {},
+	graphToEdit: null,
+	setGraphToEdit: () => {},
 	dateToHighlight: new Date(),
 	setDateToHighlight: () => {},
 });
@@ -64,7 +68,7 @@ export default function GraphContextProvider({
 }) {
 	const [graphs, setGraphs] = useState<Map<string, GraphState>>(new Map());
 	// const [editingTile, setEditingTile] = useState<StoredTile | null>(null);
-	// const [editingGraph, setEditingGraph] = useState<GraphState | null>(null);
+	const [graphToEdit, setGraphToEdit] = useState<GraphState | null>(null);
 	const [dateToHighlight, setDateToHighlight] = useState(new Date());
 	const [refetchGraphs, setRefetchGraphs] = useState(true);
 
@@ -93,6 +97,8 @@ export default function GraphContextProvider({
 				// setEditingTile,
 				// editingGraph,
 				// setEditingGraph,
+				graphToEdit,
+				setGraphToEdit,
 				dateToHighlight,
 				setDateToHighlight,
 			}}

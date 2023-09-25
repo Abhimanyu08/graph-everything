@@ -17,7 +17,7 @@ function IndexedDbContextProvider({ children }: { children: React.ReactNode }) {
 			setDocumentDb((e.target as any).result);
 		};
 
-		documentDbRequest.onupgradeneeded = function (e) {
+		documentDbRequest.onupgradeneeded = function () {
 			let db = documentDbRequest.result;
 			if (!db.objectStoreNames.contains("")) {
 				const mdObjectStore = db.createObjectStore("tile", {
@@ -26,7 +26,7 @@ function IndexedDbContextProvider({ children }: { children: React.ReactNode }) {
 				mdObjectStore.createIndex("noteIndex", "note", {
 					unique: false,
 				});
-				mdObjectStore.createIndex("titleIndex", "graphTitle", {
+				mdObjectStore.createIndex("graphIndex", "graphId", {
 					unique: false,
 				});
 			}
