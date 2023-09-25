@@ -38,9 +38,6 @@ function GraphForm({
 	const [measurementType, setMeasurementType] = useState<"ratio" | "ordinal">(
 		graphState?.measurementType || "ratio"
 	);
-	const [frequency, setFrequency] = useState<"weekly" | "monthly" | "daily">(
-		graphState?.frequency || "daily"
-	);
 	const [hue, setHue] = useState(0);
 	const titleRef = useRef<HTMLInputElement>(null);
 	const minimumRef = useRef<HTMLInputElement>(null);
@@ -54,7 +51,6 @@ function GraphForm({
 		const graphDetails: Partial<GraphState> = {
 			title: titleRef.current?.value || "No Title",
 			hue,
-			frequency,
 			measurementType,
 			minimum:
 				measurementType === "ordinal"
@@ -104,28 +100,7 @@ function GraphForm({
 					/>
 				</div>
 				<ColorPicker setHue={setHue} hue={graphState?.hue} />
-				<div className="grid grid-cols-8 items-center gap-4">
-					<Label htmlFor="frequency" className="text-left col-span-4">
-						{`How often would you track this thing?`}
-					</Label>
-					<Select
-						defaultValue={graphState?.frequency || "daily"}
-						onValueChange={(value) =>
-							setFrequency(value as typeof frequency)
-						}
-					>
-						<SelectTrigger className="col-span-4">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="daily" defaultChecked>
-								Every day
-							</SelectItem>
-							<SelectItem value="weekly">Every week</SelectItem>
-							<SelectItem value="monthly">Every Month</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
+
 				<div className="grid grid-cols-8 items-center gap-4">
 					<Label
 						htmlFor="measurement"

@@ -11,7 +11,6 @@ export type GraphState =
 	| {
 			title: string;
 			hue: number;
-			frequency: "daily" | "weekly" | "monthly";
 			measurementType: "ratio";
 			timeStamp: number;
 			maximumTillNow: number;
@@ -20,7 +19,6 @@ export type GraphState =
 	| {
 			title: string;
 			hue: number;
-			frequency: "daily" | "weekly" | "monthly";
 			measurementType: "ordinal";
 			minimum: number;
 			maximum: number;
@@ -40,25 +38,17 @@ export type StoredTile = {
 export const GraphContext = createContext<{
 	graphs: Map<string, GraphState>;
 	refreshGraphs: () => void;
-	graphToEdit: GraphState | null;
-	setGraphToEdit: Dispatch<SetStateAction<GraphState | null>>;
-	// editingTile: StoredTile | null;
-	// setEditingTile: Dispatch<SetStateAction<StoredTile | null>>;
-	// editingGraph: GraphState | null;
-	// setEditingGraph: Dispatch<SetStateAction<GraphState | null>>;
 	dateToHighlight: Date;
 	setDateToHighlight: Dispatch<SetStateAction<Date>>;
+	dark: boolean;
+	toggleDark: () => void;
 }>({
 	graphs: new Map(),
 	refreshGraphs: () => {},
-	// editingTile: null,
-	// setEditingTile: () => {},
-	// editingGraph: null,
-	// setEditingGraph: () => {},
-	graphToEdit: null,
-	setGraphToEdit: () => {},
 	dateToHighlight: new Date(),
 	setDateToHighlight: () => {},
+	dark: true,
+	toggleDark: () => {},
 });
 
 export default function GraphContextProvider({
@@ -67,10 +57,18 @@ export default function GraphContextProvider({
 	children: React.ReactNode;
 }) {
 	const [graphs, setGraphs] = useState<Map<string, GraphState>>(new Map());
-	// const [editingTile, setEditingTile] = useState<StoredTile | null>(null);
-	const [graphToEdit, setGraphToEdit] = useState<GraphState | null>(null);
 	const [dateToHighlight, setDateToHighlight] = useState(new Date());
 	const [refetchGraphs, setRefetchGraphs] = useState(true);
+	const [dark, setDark] = useState(true);
+
+	const toggleDark = () => {
+		if (document.body.classList.contains("dark")) {
+			document.body.classList.remove("dark");
+		} else {
+			document.body.classList.add("dark");
+		}
+		setDark((p) => !p);
+	};
 
 	useEffect(() => {
 		if (!refetchGraphs) return;
@@ -93,14 +91,10 @@ export default function GraphContextProvider({
 			value={{
 				graphs,
 				refreshGraphs,
-				// editingTile,
-				// setEditingTile,
-				// editingGraph,
-				// setEditingGraph,
-				graphToEdit,
-				setGraphToEdit,
 				dateToHighlight,
 				setDateToHighlight,
+				dark,
+				toggleDark,
 			}}
 		>
 			{children}

@@ -11,9 +11,7 @@ export default function NewGraphDialog({ className }: { className: string }) {
 	return (
 		<Dialog open={open}>
 			<DialogTrigger className={className}>
-				<Button variant={"outline"} onClick={() => setOpen(true)}>
-					New Graph
-				</Button>
+				<Button onClick={() => setOpen(true)}>New Graph</Button>
 			</DialogTrigger>
 			<DialogContent onClick={() => setOpen(false)}>
 				<GraphForm setOpen={setOpen} />

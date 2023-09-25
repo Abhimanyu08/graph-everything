@@ -19,7 +19,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${inter.className} flex items-center overflow-hidden py-20 flex-col  px-16 w-screen min-h-screen dark overflow-y-auto`}
+				className={`${inter.className} flex items-center overflow-hidden py-20 flex-col px-16 dark w-screen min-h-screen overflow-y-auto`}
 			>
 				<IndexedDbContextProvider>
 					<GraphContextProvider>{children}</GraphContextProvider>

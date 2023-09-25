@@ -20,13 +20,16 @@ import GraphForm from "./GraphForm";
 import { Button } from "./ui/button";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
-	const { hue, title, frequency, measurementType } = graphState;
+	const { hue, title } = graphState;
+	const { dark } = useContext(GraphContext);
 	const [open, setOpen] = useState(false);
 	return (
 		<div
 			className="flex flex-col border-[1px] w-fit p-4 gap-4 "
 			style={{
-				backgroundColor: `hsl(${hue}deg, 12%, 10%)`,
+				backgroundColor: dark
+					? `hsl(${hue}deg, 20%, 15%)`
+					: `hsl(${hue}deg, 12%, 80%)`,
 				// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
 				borderColor: `hsl(${hue}deg, 50%, 20%)`,
 			}}
@@ -34,17 +37,21 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 			<div className="flex justify-between">
 				<h1
 					className="font-text-xl font-medium"
-					style={{ color: `hsl(${hue}deg 50% 50%)` }}
+					style={{
+						color: dark
+							? `hsl(${hue}deg 100% 50%)`
+							: `hsl(${hue}deg 100% 30%)`,
+					}}
 				>
 					{title}
 				</h1>
 				<Dialog open={open}>
 					<DialogTrigger>
 						<Button
-							variant={"outline"}
+							variant={"ghost"}
 							onClick={() => setOpen(true)}
 							size={"sm"}
-							className="h-6 py-4 px-4"
+							className="h-6 px-4"
 						>
 							Edit
 						</Button>
@@ -168,7 +175,7 @@ function GraphTile({
 		maximumMeasurement = graphState.maximum;
 	}
 
-	const { dateToHighlight } = useContext(GraphContext);
+	const { dateToHighlight, dark } = useContext(GraphContext);
 	const { documentDb } = useContext(IndexedDbContext);
 
 	const refreshTile = () => {
@@ -193,16 +200,23 @@ function GraphTile({
 					<DialogTrigger
 						className={` rounded-sm h-[18px] border-[2px] hover:scale-105 active:scale-95`}
 						style={{
-							backgroundColor: `hsl(${hue}deg 100% ${getLightnessFromAmount(
+							backgroundColor: `hsl(${hue}deg ${
+								dark ? "100%" : "80%"
+							} ${getLightnessFromAmount(
 								tileStats.amount,
-								maximumMeasurement
+								maximumMeasurement,
+								dark
 							)}%)`,
 							borderColor: isSameDay(
 								dateToHighlight,
 								new Date(timeStamp)
 							)
-								? `hsl(${hue}deg 100% 50%)`
-								: `hsl(${hue}deg 100% 8%)`,
+								? dark
+									? `hsl(${hue}deg 100% 50%)`
+									: `hsl(${hue}deg 100% 20%)`
+								: dark
+								? `hsl(${hue}deg 100% 8%)`
+								: `hsl(${hue}deg 50% 70%)`,
 						}}
 						onClick={() => {
 							const todayDate = addDays(new Date(), 1);
@@ -217,14 +231,25 @@ function GraphTile({
 					</DialogTrigger>
 					<TooltipContent
 						style={{
-							backgroundColor: `hsl(${graphState.hue}deg, 20%, 10%)`,
+							// backgroundColor: `hsl(${graphState.hue}deg, 20%, 10%)`,
 							// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
 							borderColor: `hsl(${graphState.hue}deg, 100%, 20%)`,
-							color: `hsl(${graphState.hue}deg 50% 50%)`,
+							// color: `hsl(${graphState.hue}deg 50% 50%)`,
 						}}
+						side="right"
 					>
-						{graphState.title}: {tileStats.amount} on{" "}
-						{new Date(timeStamp).toDateString().slice(4)}
+						<p>
+							{graphState.title}: {tileStats.amount} on{" "}
+							{new Date(timeStamp).toDateString().slice(4)}
+						</p>
+						{tileStats.note && tileStats.note !== "<p></p>" && (
+							<div
+								className="prose dark:prose-invert mt-4"
+								dangerouslySetInnerHTML={{
+									__html: tileStats.note,
+								}}
+							></div>
+						)}
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
@@ -239,11 +264,15 @@ function GraphTile({
 	);
 }
 
-function getLightnessFromAmount(amount: number, maximum: number) {
+function getLightnessFromAmount(
+	amount: number,
+	maximum: number,
+	isDark?: boolean
+) {
 	// This function converts any given amount to a lightnes percentage between 0 to 70%.
 	// Say someone tracks number of steps, maximum number of steps he has ever taken are 5000. If he walks 3000 steps on a day, then the tile corresponding to that day will have lightness value = (3000/5000)*70
 
-	if (amount === 0) return 0;
+	if (amount === 0) return isDark ? 0 : 98;
 	if (maximum === 0) return 50;
 	const lightness = (amount / maximum) * 50;
 

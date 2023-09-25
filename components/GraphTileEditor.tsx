@@ -23,7 +23,7 @@ function GraphTileEditor({
 }) {
 	const [amount, setAmount] = useState<number>(0);
 	const { documentDb } = useContext(IndexedDbContext);
-	const { refreshGraphs } = useContext(GraphContext);
+	const { refreshGraphs, dark } = useContext(GraphContext);
 
 	const editor = useEditor(
 		{
@@ -78,9 +78,9 @@ function GraphTileEditor({
 		<DialogContent
 			className="flex flex-col p-4 gap-6  border-[1px]"
 			style={{
-				backgroundColor: `hsl(${graph.hue}deg, 20%, 10%)`,
+				// backgroundColor: `hsl(${graph.hue}deg, 20%, 10%)`,
 				// boxShadow: `0px 0px 5px 0.2px hsl(${hue}deg, 50%, 50%)`,
-				borderColor: `hsl(${graph.hue}deg, 100%, 20%)`,
+				borderColor: `hsl(${graph.hue}deg, 100%, 50%)`,
 				color: `hsl(${graph.hue}deg 50% 50%)`,
 			}}
 			onClick={closeEditor}
@@ -104,7 +104,9 @@ function GraphTileEditor({
 							setAmount(parseInt(e.currentTarget.value))
 						}
 						style={{
-							backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+							backgroundColor: dark
+								? `hsl(${graph.hue}deg, 50%, 5%)`
+								: `hsl(${graph.hue}deg, 50% , 90%)`,
 						}}
 					/>
 				) : (
@@ -117,7 +119,9 @@ function GraphTileEditor({
 							setAmount(parseInt(e.currentTarget.value))
 						}
 						style={{
-							backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+							backgroundColor: dark
+								? `hsl(${graph.hue}deg, 50%, 5%)`
+								: `hsl(${graph.hue}deg, 50% , 90%)`,
 						}}
 					/>
 				)}
@@ -126,9 +130,11 @@ function GraphTileEditor({
 				<Label className="ml-1">Note:</Label>
 				<EditorContent
 					editor={editor}
-					className="grow border-border border-[1px]  rounded-sm prose prose-invert prose-p:m-0"
+					className="grow border-border border-[1px]  rounded-sm prose dark:prose-invert prose-p:m-0"
 					style={{
-						backgroundColor: `hsl(${graph.hue}deg, 50%, 5%)`,
+						backgroundColor: dark
+							? `hsl(${graph.hue}deg, 50%, 5%)`
+							: `hsl(${graph.hue}deg, 50% , 90%)`,
 					}}
 				/>
 			</div>
