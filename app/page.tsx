@@ -11,7 +11,7 @@ export default function Home() {
 	return (
 		<>
 			<div
-				className="absolute top-4 right-4"
+				className="absolute top-4 right-16"
 				onClick={toggleDark}
 			>{`dark/light`}</div>
 			<div className="flex w-full justify-between">

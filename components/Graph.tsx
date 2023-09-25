@@ -5,28 +5,58 @@ import {
 	StoredTile,
 } from "@/app/contexts/GraphContext";
 import { IndexedDbContext } from "@/app/contexts/IndexedDbContext";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { addDays, isSameDay } from "date-fns";
+import { Edit2, Trash } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import GraphForm from "./GraphForm";
 import GraphTileEditor from "./GraphTileEditor";
+import { Button } from "./ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogTrigger,
+} from "./ui/dialog";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
-import { DialogContent } from "./ui/dialog";
-import GraphForm from "./GraphForm";
-import { Button } from "./ui/button";
-import { useToast } from "@/components/ui/use-toast";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title } = graphState;
-	const { dark } = useContext(GraphContext);
+	const { dark, refreshGraphs } = useContext(GraphContext);
+	const { documentDb } = useContext(IndexedDbContext);
 	const [open, setOpen] = useState(false);
+	const [openDeletionDialog, setOpenDeletionDialog] = useState(false);
+
+	const onDelete = () => {
+		// Delete from localStorage
+		if (!documentDb) return;
+		localStorage.removeItem(graphState.key);
+
+		// Delete from IndexedDB
+
+		const transaction = documentDb.transaction("tile", "readwrite");
+		const store = transaction.objectStore("tile");
+		const index = store.index("graphIndex");
+		const request = index.openCursor(IDBKeyRange.only(graphState.key));
+
+		request.onsuccess = function () {
+			const cursor = request.result;
+			if (cursor) {
+				store.delete(cursor.primaryKey);
+				cursor.continue();
+			}
+		};
+		setOpenDeletionDialog(false);
+		refreshGraphs();
+	};
 	return (
 		<div
-			className="flex flex-col border-[1px] w-fit p-4 gap-4 "
+			className="flex flex-col border-[1px] w-fit p-4 gap-4 group"
 			style={{
 				backgroundColor: dark
 					? `hsl(${hue}deg, 20%, 15%)`
@@ -48,21 +78,56 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 				>
 					{title}
 				</h1>
-				<Dialog open={open}>
-					<DialogTrigger>
-						<Button
-							variant={"ghost"}
-							onClick={() => setOpen(true)}
-							size={"sm"}
-							className="h-6 px-4"
+				<div className="flex gap-3 group-hover:visible invisible ">
+					<Dialog open={open}>
+						<DialogTrigger>
+							<Button
+								variant={"ghost"}
+								className="h-5 rounded-sm px-3 py-4"
+								onClick={() => setOpen(true)}
+							>
+								<Edit2 size={15} className="" />
+							</Button>
+							<DialogContent onClick={() => setOpen(false)}>
+								<GraphForm
+									setOpen={setOpen}
+									graphState={graphState}
+								/>
+							</DialogContent>
+						</DialogTrigger>
+					</Dialog>
+					<Dialog open={openDeletionDialog}>
+						<DialogTrigger
+							onClick={() => setOpenDeletionDialog(true)}
 						>
-							Edit
-						</Button>
-					</DialogTrigger>
-					<DialogContent onClick={() => setOpen(false)}>
-						<GraphForm setOpen={setOpen} graphState={graphState} />
-					</DialogContent>
-				</Dialog>
+							<Button
+								variant={"ghost"}
+								className="h-5 rounded-sm px-3 py-4"
+							>
+								<Trash size={15} className="" />
+							</Button>
+						</DialogTrigger>
+						<DialogContent
+							onClick={() => setOpenDeletionDialog(false)}
+						>
+							<p>
+								Delete{" "}
+								<span className="font-bold">
+									{graphState.title}?
+								</span>
+							</p>
+							<DialogFooter>
+								<Button
+									variant={"destructive"}
+									onClick={onDelete}
+									type="submit"
+								>
+									Confirm
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</div>
 			</div>
 			<Graph graphState={graphState} />
 		</div>
@@ -126,7 +191,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 			{Array.from({ length: 365 }).map((_, i) => {
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i
+					i - 30
 				);
 
 				let tile: StoredTile = {
