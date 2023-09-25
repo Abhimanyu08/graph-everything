@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import GraphContextProvider from "./contexts/GraphContext";
 import IndexedDbContextProvider from "./contexts/IndexedDbContext";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
 			>
 				<IndexedDbContextProvider>
 					<GraphContextProvider>{children}</GraphContextProvider>
+					<Toaster />
 				</IndexedDbContextProvider>
 			</body>
 		</html>

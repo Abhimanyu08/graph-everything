@@ -18,6 +18,7 @@ import {
 import { DialogContent } from "./ui/dialog";
 import GraphForm from "./GraphForm";
 import { Button } from "./ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 	const { hue, title } = graphState;
@@ -125,7 +126,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 			{Array.from({ length: 365 }).map((_, i) => {
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i - 30
+					i
 				);
 
 				let tile: StoredTile = {
@@ -169,6 +170,7 @@ function GraphTile({
 	const [tileStats, setTileStats] = useState(tile);
 	const [open, setOpen] = useState(false);
 	const { hue } = graphState;
+	const { toast } = useToast();
 
 	let maximumMeasurement = 0;
 	if (graphState.measurementType === "ratio") {
@@ -223,10 +225,17 @@ function GraphTile({
 						onClick={() => {
 							const todayDate = addDays(new Date(), 1);
 							todayDate.setHours(0, 0, 0, 0);
-							console.log(todayDate, new Date(timeStamp));
 							if (todayDate > new Date(timeStamp)) {
 								setOpen(true);
+								return;
 							}
+							toast({
+								title: "Uh...",
+								description:
+									"You are not allowed to add stuff to the future dates",
+								variant: "destructive",
+								duration: 2000,
+							});
 						}}
 					>
 						<TooltipTrigger className="w-full h-full duration-0"></TooltipTrigger>
