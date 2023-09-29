@@ -21,9 +21,10 @@ function GraphTileEditor({
 	tile: StoredTile;
 	closeEditor: () => void;
 }) {
-	const [amount, setAmount] = useState<number>(0);
+	const [amount, setAmount] = useState<number | undefined>(0);
 	const { documentDb } = useContext(IndexedDbContext);
 	const { refreshGraphs, dark } = useContext(GraphContext);
+	const [error, setError] = useState("");
 
 	const editor = useEditor(
 		{
@@ -100,9 +101,22 @@ function GraphTileEditor({
 						max={graph.maximum}
 						className="w-fit"
 						value={amount}
-						onChange={(e) =>
-							setAmount(parseInt(e.currentTarget.value))
-						}
+						onChange={(e) => {
+							if (e.currentTarget.value === "")
+								setAmount(undefined);
+							const value = parseInt(e.currentTarget.value);
+							if (
+								value >= graph.minimum &&
+								value <= graph.maximum
+							) {
+								setError("");
+								setAmount(value);
+								return;
+							}
+							setError(
+								`Enter a value between ${graph.minimum} and ${graph.maximum}`
+							);
+						}}
 						style={{
 							backgroundColor: dark
 								? `hsl(${graph.hue}deg, 50%, 5%)`
@@ -125,6 +139,13 @@ function GraphTileEditor({
 						}}
 					/>
 				)}
+				<p
+					className={`ml-1 text-sm ${
+						error ? "visible" : "invisible"
+					}`}
+				>
+					{error || "No error whatsoever"}
+				</p>
 			</div>
 			<div className="flex flex-col gap-2">
 				<Label className="ml-1">Note:</Label>

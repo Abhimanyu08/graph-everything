@@ -67,7 +67,7 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 					: `hsl(${hue}deg, 50%, 50%)`,
 			}}
 		>
-			<div className="flex justify-between">
+			<div className="flex justify-between items-center">
 				<h1
 					className="font-text-xl font-medium"
 					style={{
@@ -78,15 +78,22 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 				>
 					{title}
 				</h1>
-				<div className="flex gap-3 group-hover:visible invisible ">
+				<div
+					className="flex gap-3 group-hover:visible invisible "
+					style={{
+						color: dark
+							? `hsl(${hue}deg 100% 50%)`
+							: `hsl(${hue}deg 100% 30%)`,
+					}}
+				>
 					<Dialog open={open}>
 						<DialogTrigger>
 							<Button
-								variant={"ghost"}
-								className="h-5 rounded-sm px-3 py-4"
+								variant={"outline"}
+								className="h-3 rounded-sm px-2 py-3"
 								onClick={() => setOpen(true)}
 							>
-								<Edit2 size={15} className="" />
+								<Edit2 size={14} className="" />
 							</Button>
 							<DialogContent onClick={() => setOpen(false)}>
 								<GraphForm
@@ -101,10 +108,10 @@ function GraphWithDetails({ graphState }: { graphState: GraphState }) {
 							onClick={() => setOpenDeletionDialog(true)}
 						>
 							<Button
-								variant={"ghost"}
-								className="h-5 rounded-sm px-3 py-4"
+								variant={"destructive"}
+								className="h-3 rounded-sm px-2 py-3"
 							>
-								<Trash size={15} className="" />
+								<Trash size={14} className="" />
 							</Button>
 						</DialogTrigger>
 						<DialogContent
@@ -191,7 +198,7 @@ function Graph({ graphState }: { graphState: GraphState }) {
 			{Array.from({ length: 365 }).map((_, i) => {
 				const currentTileDate = addDays(
 					new Date(graphState.timeStamp),
-					i
+					i - 20
 				);
 
 				let tile: StoredTile = {
