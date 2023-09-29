@@ -116,14 +116,14 @@ function GraphForm({
 									className="w-96 text-lighttext"
 									side="left"
 								>
-									{`Say you decide to track number of pomodoros.
+									{`Say you decide to track number of pomodoros you do each day. 
 									This can be measured exactly for eg. "10
-									pomodoros". If you decide to track "Quality
+									pomodoros". If you decide to track something like "Quality
 									of meditation", you can't assign a number to
 									it. The best you can do is assign a rating
-									out of 5, 10 whatever. Therefore, "Number of
+									out of 5, 10 whatever." Number of
 									pomodoros" is a measurement of type "ratio",
-									while quality of meditation is measurement
+									while "Quality of meditation" is measurement
 									of type "Ordinal"`}
 								</TooltipContent>
 							</Tooltip>
